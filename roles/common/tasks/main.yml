@@ -1,0 +1,55 @@
+---
+# tasks file for common
+- name: set timezone
+  timezone: 
+    name: Asia/Tokyo
+
+- name: enable alias for Debian,Ubuntu
+  become: yes
+  become_user: "{{ item }}"
+  blockinfile: 
+    path: ~/.profile
+    create: yes
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: 0644
+    marker: "# {mark} ANSIBLE MANAGED BLOCK enable alias"
+    backup: yes
+    block: |
+      export LS_OPTIONS='--color=auto'
+      eval "`dircolors`"
+      alias ls='ls $LS_OPTIONS'
+      alias ll='ls $LS_OPTIONS -l'
+      alias l='ls $LS_OPTIONS -lA'
+  with_items: 
+    - "root"
+    - "pi"
+  when: 
+    ansible_distribution == "Debian"
+
+- name: apt install
+  apt: 
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items: 
+    - dnsutils
+    - telnet
+    - vim
+    - tcpdump
+    - jq
+    - lsof
+    - unattended-upgrades
+
+- name: enable auto apt-upgrade
+  become: yes
+  lineinfile: 
+    path: /etc/apt/apt.conf.d/50unattended-upgrades
+    backup: yes
+    backrefs: yes
+    state: present
+    regexp: '^//(Unattended-Upgrade::InstallOnShutdown ).*;$'
+    line: '\1 "true"'
+
+
+
