@@ -1,0 +1,9 @@
+apiVersion: kubeadm.k8s.io/v1alpha1
+kind: MasterConfiguration
+controllerManagerExtraArgs:
+  pod-eviction-timeout: 10s
+api:
+  advertiseAddress: {{ master_advertise_address }}
+networking:
+  dnsDomain: cluster.local
+  podSubnet: 10.244.0.0/16

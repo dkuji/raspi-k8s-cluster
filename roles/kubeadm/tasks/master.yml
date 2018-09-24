@@ -1,0 +1,86 @@
+---
+- name: mkdir ~/kubeadm
+  become: yes
+  become_user: pi
+  file: 
+    path: ~/kubeadm
+    state: directory
+    mode: 0755
+
+- name: deliver kubeadm_conf.yaml
+  #become: yes
+  #become_user: pi
+  template: 
+    src: ../templates/kubeadm_conf.yaml
+    dest: ~/kubeadm/
+    owner: "{{ k8s_user }}"
+    group: "{{ k8s_user }}"
+    mode: 0644 
+    backup: yes
+
+
+- name: check /etc/kubernetes/kubelet.conf
+  stat: 
+    path: /etc/kubernetes/kubelet.conf
+  register: check_kubelet_conf
+    
+- name: check /home/pi/.kube/config
+  stat: 
+    path: /home/pi/.kube/config
+  register: check_HOME_kube_config
+ 
+- name: kubeadm init
+  shell: |
+    kubeadm init --config ~/kubeadm/kubeadm_conf.yaml
+  when:
+    - not check_kubelet_conf.stat.exists
+  register: result_kubeadm_init
+
+- name: debug result_kubeadm_init
+  debug: 
+    var: result_kubeadm_init
+
+#- name: set var_result_kubeadm_init
+#  set_fact: 
+#    var_result_kubeadm_init: "{{ result_kubeadm_init }}"
+
+- name: mkdir ~/.kube
+  become: yes
+  become_user: "{{ k8s_user }}"
+  file: 
+    path: ~/.kube
+    state: directory
+    mode: 0755
+
+- name: check .kube/config
+  become: yes
+  become_user: "{{ k8s_user }}"
+  stat: 
+    path: ~/.kube/config
+  register: check_kube_config
+
+- name: copy /etc/kubernetes/admin.conf to $HOME/.kube/config
+  shell: |
+    cp -p /etc/kubernetes/admin.conf /home/pi/.kube/config 
+  when: 
+    - not check_HOME_kube_config.stat.exists
+
+- name: chown ~/.kube/config
+  file: 
+    path: /home/pi/.kube/config
+    state: file
+    mode: 0644
+    owner: "{{ k8s_user }}"
+    group: "{{ k8s_user }}"
+    
+- name: deploy kube-flannel
+  become: yes
+  become_user: "{{ k8s_user }}"
+  shell: |
+    curl -s https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml |sed 's/amd64/arm/g' | kubectl apply -f -
+  register: result_kubectl_apply_kube_flannel
+
+- name: output result_kubectl_apply_kube_flannel
+  debug: 
+    var: result_kubectl_apply_kube_flannel
+  when: result_kubectl_apply_kube_flannel is defined

@@ -1,0 +1,44 @@
+---
+- name: kubectl get nodes
+  become: yes
+  become_user: "{{ k8s_user }}"
+  shell: |
+    kubectl get nodes
+  when: 
+    - k8s_role == "worker"
+  register: result_kubectl_get_nodes
+  changed_when: false
+  failed_when: false
+
+- name: debug result_kubectl_get_nodes
+  debug: 
+    var: result_kubectl_get_nodes
+  when: result_kubectl_get_nodes is defined
+
+#- debug: 
+#    msg: "{{ hostvars['raspi-cluster-master']['result_kubeadm_init']['stdout_lines'] }}"
+
+- name: kubeadm join from kubeadm init command stdout
+  shell: |
+    /bin/bash -lc "kubeadm reset -f ; {{ item }}"
+  when: 
+    - '"kubeadm join " in item | default("")'
+    - result_kubectl_get_nodes.rc != 0
+    - kubeadm_join_command is not defined
+  with_items: 
+    - "{{ hostvars['raspi-cluster-master']['result_kubeadm_init']['stdout_lines'] }}"
+  register: result_kubeadm_join
+
+- name: kubeaddm join from vars kubeadm_join_command
+  shell: |
+    /bin/bash -lc "kubeadm reset -f ; {{ kubeadm_join_command }}"
+  when: 
+    - kubeadm_join_command is defined
+  register: result_kubeadm_join
+
+- name: debug result_kubeadm_join
+  debug: 
+    var: result_kubeadm_join
+  when: result_kubeadm_join is defined
+
+  
