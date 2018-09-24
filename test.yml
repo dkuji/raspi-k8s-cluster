@@ -1,0 +1,21 @@
+---
+- name: deploy k8scluster
+  #hosts: k8scluster-master k8scluster-worker
+  hosts: raspi-cluster-master
+  become: yes
+  serial: 50%
+  tasks: 
+    - shell: |
+        uname -a
+      register: result_uname_a
+
+    - debug: 
+        #msg: "{{ hostvars[k8scluster-master['raspi-cluster-master']] }}"
+        #msg: "{{ hostvars[groups['raspi-cluster-master'][0]]['result_uname_a']['stdout'] }}"
+        #var: hostvars['raspi-cluster-master']['result_uname_a']['stdout'] 
+        msg: "{{ hostvars['raspi-cluster-master']['result_uname_a']['stdout'] }}"
+        #var: item
+        #msg: "{{ hostvars[all]['raspi-cluster-master'] }}"
+      #with_items: "{{ groups['raspi-cluster-master'] }}"
+    when: 
+      '"aaa" '

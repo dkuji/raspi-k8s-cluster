@@ -1,0 +1,11 @@
+[k8scluster-master]
+raspi-cluster-master    ansible_host=192.168.0.21  k8s_role=master
+
+[k8scluster-worker]
+raspi-cluster-worker01  ansible_host=192.168.0.22  k8s_role=worker
+raspi-cluster-worker02  ansible_host=192.168.0.23  k8s_role=worker
+
+[k8scluster:children]
+k8scluster-master
+k8scluster-worker
+
