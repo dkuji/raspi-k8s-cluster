@@ -1,0 +1,43 @@
+---
+# tasks file for gcloud
+- name: get gcloud
+  become: yes
+  become_user: pi
+  get_url:
+    url: https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-200.0.0-linux-x86_64.tar.gz
+    validate_certs: no
+    dest: /home/pi/
+
+- name: check /home/pi/google-cloud-sdk
+  stat: 
+    path: /home/pi/google-cloud-sdk
+  register: check_google_cloud_sdk
+
+- name: unarchive to /home/pi/google-cloud-sdk
+  become: yes
+  become_user: pi
+  shell: |
+    cd /home/pi/ && tar xvzf google-cloud-sdk-200.0.0-linux-x86_64.tar.gz
+  when: 
+    - not check_google_cloud_sdk.stat.exists
+
+- name: check gcloud command
+  become: yes
+  become_user: pi
+  shell: |
+    which gcloud
+  register: result_which_gcloud
+  changed_when: false
+  failed_when: false
+
+- name: install gcloud
+  become: yes
+  become_user: pi
+  shell: |
+    cd /home/pi/ && ./google-cloud-sdk/install.sh --bash-completion true --path-update true -q
+  when: 
+    - result_which_gcloud.rc != 0
+
+  
+
+
