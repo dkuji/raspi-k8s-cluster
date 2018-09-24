@@ -1,0 +1,36 @@
+---
+# tasks file for docker
+- name: check docker command exists 
+  tags: install
+  shell: |
+    which docker
+  register: result_docker_command
+  changed_when: false
+  failed_when: false
+
+- name: debug result_docker_command
+  debug: 
+    var: result_docker_command
+
+- name: get get.docker.com
+  tags: install
+  shell: |
+    curl -sSL http://get.docker.com | sh 
+  when: result_docker_command.rc != 0
+  register: docker_install
+
+- name: output docker_install
+  debug: 
+    msg: "{{ docker_install }}"
+  when: docker_install is defined
+
+- name: add subgroup docker
+  user: 
+    name: "{{ k8s_user }}"
+    groups: docker
+
+- name: enable docker
+  systemd: 
+    name: docker
+    state: started
+    enabled: yes

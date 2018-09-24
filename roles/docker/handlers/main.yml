@@ -1,0 +1,6 @@
+---
+# handlers file for docker
+- name: install docker
+  shell: |
+    /bin/bash ~/docker-install.sh
+
