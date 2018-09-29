@@ -42,5 +42,8 @@ jobs:
             - ./venv
           key: v1-dependencies-{{ checksum "./.circleci/requirements.txt" }}
 
-      - run: ansible-lint k8scluster.yml -c .circleci/.ansible-lint -x ANSIBLE0006 -x ANSIBLE0013 -x ANSIBLE0012
-      - run: ansible-playbook -i hosts site.yml --syntax-check
+      - run: 
+          command: |
+            . venv/bin/activate
+            ansible-lint k8scluster.yml -c .circleci/.ansible-lint -x ANSIBLE0006 -x ANSIBLE0013 -x ANSIBLE0012
+            ansible-playbook -i hosts site.yml --syntax-check
