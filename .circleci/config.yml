@@ -20,18 +20,30 @@ jobs:
     steps:
       - checkout
 
+      - run: 
+          command: |
+            pip install virtualenv
+            virtualenv venv
+
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "./circleci/requirements.txt" }}
+          - v1-dependencies-{{ checksum "./.circleci/requirements.txt" }}
           # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+          #- v1-dependencies-
 
-      - run: sudo pip install -r ./.circleci/requirements.txt
+      - run: 
+          command: |
+            . venv/bin/activate
+            pip install -r ./.circleci/requirements.txt
 
       - save_cache:
           paths:
             - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
+          key: v1-dependencies-{{ checksum "./.circleci/requirements.txt" }}
 
-      - run: ansible-lint k8scluster.yml -c .circleci/.ansible-lint -x ANSIBLE0006 -x ANSIBLE0013 -x ANSIBLE0012
+      - run: 
+          command: |
+            . venv/bin/activate
+            ansible-lint site.yml -c .circleci/.ansible-lint -x ANSIBLE0006 -x ANSIBLE0013 -x ANSIBLE0012
+            ansible-playbook -i hosts site.yml --syntax-check
