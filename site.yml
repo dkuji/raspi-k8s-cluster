@@ -1,0 +1,4 @@
+---
+- import_playbook: k8scluster.yml
+  tags:
+    - k8scluster
