@@ -35,7 +35,7 @@ jobs:
       - run: 
           command: |
             . venv/bin/activate
-            sudo pip install -r ./.circleci/requirements.txt
+            pip install -r ./.circleci/requirements.txt
 
       - save_cache:
           paths:
