@@ -9,7 +9,7 @@
     dest: /home/pi/
 
 - name: check /home/pi/google-cloud-sdk
-  stat: 
+  stat:
     path: /home/pi/google-cloud-sdk
   register: check_google_cloud_sdk
 
@@ -18,7 +18,7 @@
   become_user: pi
   shell: |
     cd /home/pi/ && tar xvzf google-cloud-sdk-200.0.0-linux-x86_64.tar.gz
-  when: 
+  when:
     - not check_google_cloud_sdk.stat.exists
 
 - name: check gcloud command
@@ -35,9 +35,5 @@
   become_user: pi
   shell: |
     cd /home/pi/ && ./google-cloud-sdk/install.sh --bash-completion true --path-update true -q
-  when: 
+  when:
     - result_which_gcloud.rc != 0
-
-  
-
-

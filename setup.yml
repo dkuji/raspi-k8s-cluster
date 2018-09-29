@@ -1,6 +1,6 @@
 ---
 - name: setup task
   hosts: k8scluster
-  tasks: 
+  tasks:
     - name: get fact
       setup:

@@ -1,13 +1,13 @@
 ---
 # tasks file for common
 - name: set timezone
-  timezone: 
+  timezone:
     name: Asia/Tokyo
 
 - name: enable alias for Debian,Ubuntu
   become: yes
   become_user: "{{ item }}"
-  blockinfile: 
+  blockinfile:
     path: ~/.profile
     create: yes
     owner: "{{ item }}"
@@ -21,18 +21,18 @@
       alias ls='ls $LS_OPTIONS'
       alias ll='ls $LS_OPTIONS -l'
       alias l='ls $LS_OPTIONS -lA'
-  with_items: 
+  with_items:
     - "root"
     - "pi"
-  when: 
+  when:
     ansible_distribution == "Debian"
 
 - name: apt install
-  apt: 
+  apt:
     name: "{{ item }}"
     state: present
     update_cache: yes
-  with_items: 
+  with_items:
     - dnsutils
     - telnet
     - vim
@@ -43,7 +43,7 @@
 
 - name: enable auto apt-upgrade
   become: yes
-  lineinfile: 
+  lineinfile:
     path: /etc/apt/apt.conf.d/50unattended-upgrades
     backup: yes
     backrefs: yes

@@ -3,7 +3,7 @@
   hosts: k8scluster-master k8scluster-worker
   become: yes
   #serial: 50%
-  roles: 
+  roles:
     - { role: common, tags: common }
     - { role: docker, tags: docker }
     - { role: kubeadm, tags: kubeadm }
