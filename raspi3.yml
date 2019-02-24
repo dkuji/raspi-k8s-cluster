@@ -1,0 +1,7 @@
+---
+- name: setup raspi3
+  hosts: raspi3
+  roles:
+    - { role: common, tags: common }
+    - { role: openvpn, tags: openvpn }
+    - { role: wireguard, tags: wireguard }
