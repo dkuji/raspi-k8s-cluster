@@ -1,5 +1,50 @@
 ---
 # tasks file for common
+
+# google-cloud-sdk,awscliをインストール
+- name:
+  stat:
+    path: /etc/apt/sources.list.d/google-cloud-sdk.list
+  register: result_source_list_google_cloud_sdk_list
+
+- name: set google-cloud-sdk-repo if google-cloud-sdk.list does not exists.
+  block:
+    - name: get lsb_release
+      shell: |
+        lsb_release -c -s
+      register: result_lsb_release
+    
+    - name: setup google-cloud repo
+      environment:
+        CLOUD_SDK_REPO: "cloud-sdk-{{ result_lsb_release.stdout }}"
+      shell: |
+        echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+        curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+  when:
+    - not result_source_list_google_cloud_sdk_list.stat.exists
+
+- name: apt install
+  apt:
+    name:
+      - python-pip
+      - python-pysocks
+      - google-cloud-sdk
+
+    state: present
+    update_cache: yes
+
+- name: pip upgrade
+  pip:
+    name: pip
+    state: latest
+
+- name: pip install aws-cli
+  #become: yes
+  #become_user: pi
+  pip:
+    name: awscli
+    state: present
+
 - name: set timezone
   timezone:
     name: Asia/Tokyo
@@ -29,17 +74,16 @@
 
 - name: apt install
   apt:
-    name: "{{ item }}"
+    name:
+      - dnsutils
+      - telnet
+      - vim
+      - tcpdump
+      - jq
+      - lsof
+      - unattended-upgrades
     state: present
     update_cache: yes
-  with_items:
-    - dnsutils
-    - telnet
-    - vim
-    - tcpdump
-    - jq
-    - lsof
-    - unattended-upgrades
 
 - name: enable auto apt-upgrade
   become: yes
@@ -49,7 +93,7 @@
     backrefs: yes
     state: present
     regexp: '^//(Unattended-Upgrade::InstallOnShutdown ).*;$'
-    line: '\1 "true"'
+    line: '\1 "true" ;'
 
 
 
