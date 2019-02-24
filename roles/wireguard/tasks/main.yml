@@ -1,0 +1,113 @@
+---
+# tasks file for wireguard
+- name: add repo1
+  blockinfile:
+    path: /etc/apt/sources.list.d/unstable.list
+    create: yes
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+    block: |
+      deb http://deb.debian.org/debian/ unstable main
+
+- name: add repo2
+  template:
+    src: ../templates/limit-unstable
+    dest: /etc/apt/preferences.d/limit-unstable
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+
+- name: add debian repo key
+  shell: |
+    curl https://ftp-master.debian.org/keys/archive-key-9.asc | sudo apt-key add -
+  changed_when: false
+
+- name: install wireguard
+  tags: install
+  apt:
+    name:
+      - raspberrypi-kernel-headers
+      - wireguard
+    state: present
+    update_cache: yes
+    force: yes
+
+- name: check /etc/wireguard/wg0
+  tags: test
+  stat:
+    path: /etc/wireguard/wg0.conf
+  register: result_etc_wireguard_wg0
+
+- name: setup wireguard if /etc/wireguard/wg0 does not exists
+  block:
+    - name: generate private key
+      tags: test
+      shell: |
+        wg genkey
+      register: result_private_key
+
+    - name: generate public key
+      tags: test
+      shell: |
+        echo -n "{{ result_private_key.stdout }}" | wg pubkey
+      register: result_public_key
+
+    - name: output generated public key
+      debug:
+        var: result_public_key
+  when:
+    not result_etc_wireguard_wg0.stat.exists
+
+- name: get private key
+  shell: |
+    wg show wg0 private-key
+  register: result_private_key
+  failed_when: false
+  changed_when: false
+
+- name: set /etc/wireguard/wg0.conf
+  template:
+    src: ../templates/wg0.conf
+    dest: /etc/wireguard/wg0.conf
+    owner: "root"
+    group: "root"
+    mode: 0644
+
+
+- name: set nic wg0
+  blockinfile:
+    path: /etc/network/interfaces
+    create: yes
+    mode: 0600
+    marker: "# {mark} ANSIBLE MANAGED BLOCK set wg0"
+    backup: yes
+    block: |
+      auto wg0
+      iface wg0 inet static 
+              address 172.16.0.1
+              netmask 255.255.255.0
+              pre-up ip link add wg0 type wireguard
+              pre-up wg setconf wg0 /etc/wireguard/wg0.conf
+              post-down ip link del wg0
+              post-up iptables -A FORWARD -i wg0 -j ACCEPT
+              post-up iptables -A FORWARD -o wg0 -j ACCEPT
+              post-up iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE
+              post-down iptables -D FORWARD -i wg0 -j ACCEPT
+              post-down iptables -D FORWARD -o wg0 -j ACCEPT
+              post-down iptables -t nat -D POSTROUTING -o wlan0 -j MASQUERADE
+
+- name: sysctl net.ipv4.ip_forward = 1
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+    state: present
+    sysctl_file: /etc/sysctl.d/wireguard.conf
+    reload: yes
+
+### require reboot
+
+
+

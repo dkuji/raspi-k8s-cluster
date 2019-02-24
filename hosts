@@ -9,3 +9,8 @@ raspi-cluster-worker02  ansible_host=192.168.0.23  k8s_role=worker
 k8scluster-master
 k8scluster-worker
 
+[raspi3]
+raspberrypi3 ansible_host=192.168.0.8
+
+[raspi3-wireguard]
+raspi3-wireguard ansible_host=192.168.0.9

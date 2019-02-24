@@ -1,0 +1,6 @@
+---
+- name: setup raspi3
+  hosts: raspi3-wireguard
+  roles:
+    - { role: common, tags: common }
+    - { role: wireguard, tags: wireguard }
