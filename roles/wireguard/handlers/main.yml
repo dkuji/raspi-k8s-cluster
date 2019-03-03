@@ -1,2 +1,5 @@
 ---
 # handlers file for wireguard
+- name: down and up interface
+  shell: |
+    ifdown wg0 && ifup wg0

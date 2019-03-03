@@ -1,2 +1,9 @@
 ---
 # vars file for wireguard
+client_info:
+  - publickey: 'Xj8BE+fRH4RiFWuDhw5mA989gtLtbZYU+El9yTCeNSs='
+    allowedips: '172.16.0.10/32'
+    comment: 'my MacBook Air'
+  - publickey: 'TBfJD3jlOIuDdPa+wS3LlXEywQTkXV7JFYgLVwV7f0c='
+    allowedips: '172.16.0.11/32'
+    comment: 'my iPhone7'

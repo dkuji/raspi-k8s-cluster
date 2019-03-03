@@ -36,7 +36,6 @@
     force: yes
 
 - name: check /etc/wireguard/wg0
-  tags: test
   stat:
     path: /etc/wireguard/wg0.conf
   register: result_etc_wireguard_wg0
@@ -44,13 +43,11 @@
 - name: setup wireguard if /etc/wireguard/wg0 does not exists
   block:
     - name: generate private key
-      tags: test
       shell: |
         wg genkey
       register: result_private_key
 
     - name: generate public key
-      tags: test
       shell: |
         echo -n "{{ result_private_key.stdout }}" | wg pubkey
       register: result_public_key
@@ -75,6 +72,7 @@
     owner: "root"
     group: "root"
     mode: 0644
+  notify: down and up interface
 
 
 - name: set nic wg0
